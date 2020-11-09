@@ -1,37 +1,58 @@
-import logo from './logo.svg';
 import './App.css';
-import {useState, useEffect, useRef, useReducer} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import fetchWeatherData from './Components/fetchWeatherData'
 import GetCity from './Components/GetCity'
 
 function App() {
+  let localstor = localStorage.getItem("prevSession");
+  let currentSes=[];
+  if(localStorage.getItem("prevSession")){
+    currentSes= localstor.split(";").map(str => {return JSON.parse(str)});
+  }
+
   const [weatherDetails, setWeatherDetails] = useState({
+    array:currentSes,
     name: "",
     Country: "",
     temp: undefined,
     humidity: undefined,
-    cityName: undefined,
-    searchWeatherParam: undefined
+    date: undefined
   })
   let disableButton = useRef(true);
-  let intialState = localStorage.getItem("prevSession") ? localStorage.getItem("prevSession") : [];
-  const reducer = (currentSession, action) => {
-    return currentSession += JSON.stringify(action.body);
-  }
-  const [currentSession, dispatch] = useReducer(reducer,intialState);
-
+  const [cityList, setCityList] = useState();
+  useEffect( () => {
+    setCityList(prevState => {return weatherDetails.array.map(item => {
+        if(item.weather){
+          return(
+            <div className='City'>
+              <p>City: {item.city}</p>
+              <p>Date: {item.weather.date}</p>
+              <p>Temperature: {Math.round(item.weather.temp)}C</p>
+              <p>Humidity: {item.weather.humidity}%</p>
+            </div>)
+        }
+        else{
+          return(
+          <div className='City'>
+            <p>City: {item.city}</p>
+          </div>
+          )
+        }
+      })
+    })
+      }, [weatherDetails])
+  
   const handleSubmit = async (e) =>{
     e.preventDefault();
     e.stopPropagation();
-    try {
-      if(weatherDetails.searchWeatherParam!=undefined){
-      let res = await fetchWeatherData(weatherDetails.searchWeatherParam)
-      setWeatherDetails(prevState => {return {...weatherDetails, name: res.name, Country:res.sys.country}})
-      dispatch({body: weatherDetails})
-      localStorage.setItem("prevSession", currentSession)
+    if(currentSes!==undefined){
+      try {
+      for( const element of currentSes){
+        let res = await fetchWeatherData(element.city);
+        element.weather = {temp:res.main.temp, humidity:res.main.humidity,name: res.name, Country:res.sys.country, date:new Date(new Date().getTime() + res.timezone * 1000).toUTCString()};
       }
-    } catch (err){
-      console.log(err)
+      setWeatherDetails({...weatherDetails, array:currentSes});
+    } catch (err) { console.log(err)}
     }
   }
   const handleInputChange = (e) => {
@@ -40,19 +61,19 @@ function App() {
   }
   
   const selectCity = (e) => {
-    setWeatherDetails({...weatherDetails, searchWeatherParam:e.value})
+    currentSes= weatherDetails.array;
+    currentSes.push({city: e.value});
+    setWeatherDetails({...weatherDetails, array:currentSes})
   }
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <GetCity handleInputChange={handleInputChange} cityName={weatherDetails.cityName} selectCity={selectCity} disableButton={disableButton.current}/> 
-        <p>
-          {currentSession}
-        </p>
-      
-        <button onClick={handleSubmit}>Get Weather</button>
+        <GetCity handleInputChange={handleInputChange} cityName={weatherDetails.cityName} selectCity={selectCity} disableButton={disableButton.current}/>
+         <button onClick={handleSubmit}>Get weather and date</button>
+        <div>
+          {cityList}
+        </div>
       </header>
     </div>
   );

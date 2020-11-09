@@ -1,9 +1,9 @@
-import React, {useRef} from 'react'
+import React, { useState} from 'react'
 import Select from 'react-select'
 
 const getCityAPIKEY= process.env.REACT_APP_GETCITY_APIKEY
-const getCity = (props) => {
-    let cities = [];
+const GetCity = (props) => {
+    const [cities, setCities] = useState([]);
     const handleInputChange = (e) => {
         e.preventDefault();
         if(e.stopPropogation) e.stopPropogation();
@@ -21,13 +21,21 @@ const getCity = (props) => {
     }
     const search = async () => {
         let payload = await fetchCities();
-        payload.map(object => {
-            cities.push({label:object.LocalizedName+", "+object.Country.ID, value: object.LocalizedName+", "+object.Country.ID})
-        })
-        console.log(cities);
+        payload.forEach(object => {
+            setCities(prevState=> {
+                let newArray = prevState
+                newArray.push({label: object.LocalizedName+", "+object.Country.ID, value: object.LocalizedName+", "+object.Country.ID});
+                return (newArray)})
+        });
     }
     
     const selectCity = (e) => {
+        let prevSession = localStorage.getItem("prevSession") ? localStorage.getItem("prevSession") : [];
+        if(typeof prevSession=== 'string'){
+            prevSession= prevSession.split(";");
+        };
+        prevSession.push(JSON.stringify({city: e.value}));
+        localStorage.setItem("prevSession",prevSession.join(";"));
         props.selectCity(e);
     }
     return(
@@ -42,4 +50,4 @@ const getCity = (props) => {
     )
 }
 
-export default getCity;
+export default GetCity;
