@@ -11,12 +11,7 @@ function App() {
   }
 
   const [weatherDetails, setWeatherDetails] = useState({
-    array:currentSes,
-    name: "",
-    Country: "",
-    temp: undefined,
-    humidity: undefined,
-    date: undefined
+    array:currentSes
   })
   let disableButton = useRef(true);
   const [cityList, setCityList] = useState();
