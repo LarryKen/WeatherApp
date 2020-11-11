@@ -4,6 +4,10 @@
 
 .City {
   border-color: antiquewhite;
+  border-radius: 50px;
+  border: solid antiquewhite;
+  border-width: 20px;
+  border-style: solid;
 }
 
 .App-header {
