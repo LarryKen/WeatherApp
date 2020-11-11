@@ -17,22 +17,13 @@ function App() {
   const [cityList, setCityList] = useState();
   useEffect( () => {
     setCityList(prevState => {return weatherDetails.array.map(item => {
-        if(item.weather){
           return(
             <div className='City'>
-              <p>City: {item.city}</p>
-              <p>Date: {item.weather.date}</p>
-              <p>Temperature: {Math.round(item.weather.temp)}C</p>
-              <p>Humidity: {item.weather.humidity}%</p>
+              <li key={item.city.toString()}>City: {item.city}</li>
+              {item.weather && <li key={item.weather.date.toString()}>Date: {item.weather.date}</li>}
+              {item.weather && <li key={item.weather.temp.toString()}>Temperature: {Math.round(item.weather.temp)}C</li>}
+              {item.weather && <li key={item.weather.humidity.toString()}>Humidity: {item.weather.humidity}%</li>}
             </div>)
-        }
-        else{
-          return(
-          <div className='City'>
-            <p>City: {item.city}</p>
-          </div>
-          )
-        }
       })
     })
       }, [weatherDetails])
@@ -52,7 +43,8 @@ function App() {
   }
   const handleInputChange = (e) => {
     setWeatherDetails({...weatherDetails, cityName:e.target.value})
-    disableButton.current = false
+    disableButton.current = false;
+    if(e.target.value==="" || e.target.value ===undefined) disableButton.current = true;
   }
   
   const selectCity = (e) => {
